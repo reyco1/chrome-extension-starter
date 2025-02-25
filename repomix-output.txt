@@ -1,0 +1,782 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+================================================================
+File Summary
+================================================================
+
+Purpose:
+--------
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+
+File Format:
+------------
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Multiple file entries, each consisting of:
+  a. A separator line (================)
+  b. The file path (File: path/to/file)
+  c. Another separator line
+  d. The full contents of the file
+  e. A blank line
+
+Usage Guidelines:
+-----------------
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+
+Notes:
+------
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+
+Additional Info:
+----------------
+
+================================================================
+Directory Structure
+================================================================
+chrome-extension/
+  background.js
+  bundle.js
+  content.js
+  inject-component.js
+  manifest.json
+web-component/
+  src/
+    components/
+      draggable-container.ts
+    types/
+      chrome.d.ts
+    index.ts
+    styles.css
+    types.d.ts
+  package.json
+  postcss.config.cjs
+  rollup.config.js
+  tailwind.config.cjs
+  tsconfig.json
+.gitignore
+deploy.sh
+
+================================================================
+Files
+================================================================
+
+================
+File: chrome-extension/background.js
+================
+let isInjected = false;
+
+chrome.action.onClicked.addListener(async (tab) => {
+    if (!isInjected) {
+        // Inject the module loader script
+        await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            files: ['inject-component.js']
+        });
+
+        // Then inject the script to add the component to the page
+        await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            function: injectComponent
+        });
+
+        isInjected = true;
+    } else {
+        // Remove the component
+        await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            function: removeComponent
+        });
+
+        isInjected = false;
+    }
+});
+
+// Listen for the close event from the component
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.type === 'component-close' && sender.tab) {
+        chrome.tabs.sendMessage(sender.tab.id, { type: 'remove-component' });
+    } else if (message.type === 'component-removed') {
+        isInjected = false;
+    }
+    // Make sure to send a response
+    sendResponse({ received: true });
+});
+
+function injectComponent() {
+    // Wait a short moment for the module to load
+    setTimeout(() => {
+        const component = document.createElement('my-extension-component');
+        component.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 2147483647;
+    `;
+        document.body.appendChild(component);
+    }, 100);
+}
+
+function removeComponent() {
+    const component = document.querySelector('my-extension-component');
+    if (component) {
+        component.remove();
+    }
+    // Remove the injected script
+    const scriptElement = document.querySelector('script[src*="bundle.js"]');
+    if (scriptElement) {
+        scriptElement.remove();
+    }
+}
+
+================
+File: chrome-extension/bundle.js
+================
+var MyExtensionComponent=function(t){"use strict";function e(t,e,i,s){var o,n=arguments.length,r=n<3?e:null===s?s=Object.getOwnPropertyDescriptor(e,i):s;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)r=Reflect.decorate(t,e,i,s);else for(var a=t.length-1;a>=0;a--)(o=t[a])&&(r=(n<3?o(r):n>3?o(e,i,r):o(e,i))||r);return n>3&&r&&Object.defineProperty(e,i,r),r}"function"==typeof SuppressedError&&SuppressedError;const i=globalThis,s=i.ShadowRoot&&(void 0===i.ShadyCSS||i.ShadyCSS.nativeShadow)&&"adoptedStyleSheets"in Document.prototype&&"replace"in CSSStyleSheet.prototype,o=Symbol(),n=new WeakMap;let r=class{constructor(t,e,i){if(this._$cssResult$=!0,i!==o)throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");this.cssText=t,this.t=e}get styleSheet(){let t=this.o;const e=this.t;if(s&&void 0===t){const i=void 0!==e&&1===e.length;i&&(t=n.get(e)),void 0===t&&((this.o=t=new CSSStyleSheet).replaceSync(this.cssText),i&&n.set(e,t))}return t}toString(){return this.cssText}};const a=t=>new r("string"==typeof t?t:t+"",void 0,o),l=(t,...e)=>{const i=1===t.length?t[0]:e.reduce(((e,i,s)=>e+(t=>{if(!0===t._$cssResult$)return t.cssText;if("number"==typeof t)return t;throw Error("Value passed to 'css' function must be a 'css' function result: "+t+". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.")})(i)+t[s+1]),t[0]);return new r(i,t,o)},h=s?t=>t:t=>t instanceof CSSStyleSheet?(t=>{let e="";for(const i of t.cssRules)e+=i.cssText;return a(e)})(t):t,{is:c,defineProperty:d,getOwnPropertyDescriptor:p,getOwnPropertyNames:u,getOwnPropertySymbols:g,getPrototypeOf:w}=Object,f=globalThis,m=f.trustedTypes,b=m?m.emptyScript:"",y=f.reactiveElementPolyfillSupport,$=(t,e)=>t,v={toAttribute(t,e){switch(e){case Boolean:t=t?b:null;break;case Object:case Array:t=null==t?t:JSON.stringify(t)}return t},fromAttribute(t,e){let i=t;switch(e){case Boolean:i=null!==t;break;case Number:i=null===t?null:Number(t);break;case Object:case Array:try{i=JSON.parse(t)}catch(t){i=null}}return i}},_=(t,e)=>!c(t,e),x={attribute:!0,type:String,converter:v,reflect:!1,hasChanged:_};Symbol.metadata??=Symbol("metadata"),f.litPropertyMetadata??=new WeakMap;class A extends HTMLElement{static addInitializer(t){this._$Ei(),(this.l??=[]).push(t)}static get observedAttributes(){return this.finalize(),this._$Eh&&[...this._$Eh.keys()]}static createProperty(t,e=x){if(e.state&&(e.attribute=!1),this._$Ei(),this.elementProperties.set(t,e),!e.noAccessor){const i=Symbol(),s=this.getPropertyDescriptor(t,i,e);void 0!==s&&d(this.prototype,t,s)}}static getPropertyDescriptor(t,e,i){const{get:s,set:o}=p(this.prototype,t)??{get(){return this[e]},set(t){this[e]=t}};return{get(){return s?.call(this)},set(e){const n=s?.call(this);o.call(this,e),this.requestUpdate(t,n,i)},configurable:!0,enumerable:!0}}static getPropertyOptions(t){return this.elementProperties.get(t)??x}static _$Ei(){if(this.hasOwnProperty($("elementProperties")))return;const t=w(this);t.finalize(),void 0!==t.l&&(this.l=[...t.l]),this.elementProperties=new Map(t.elementProperties)}static finalize(){if(this.hasOwnProperty($("finalized")))return;if(this.finalized=!0,this._$Ei(),this.hasOwnProperty($("properties"))){const t=this.properties,e=[...u(t),...g(t)];for(const i of e)this.createProperty(i,t[i])}const t=this[Symbol.metadata];if(null!==t){const e=litPropertyMetadata.get(t);if(void 0!==e)for(const[t,i]of e)this.elementProperties.set(t,i)}this._$Eh=new Map;for(const[t,e]of this.elementProperties){const i=this._$Eu(t,e);void 0!==i&&this._$Eh.set(i,t)}this.elementStyles=this.finalizeStyles(this.styles)}static finalizeStyles(t){const e=[];if(Array.isArray(t)){const i=new Set(t.flat(1/0).reverse());for(const t of i)e.unshift(h(t))}else void 0!==t&&e.push(h(t));return e}static _$Eu(t,e){const i=e.attribute;return!1===i?void 0:"string"==typeof i?i:"string"==typeof t?t.toLowerCase():void 0}constructor(){super(),this._$Ep=void 0,this.isUpdatePending=!1,this.hasUpdated=!1,this._$Em=null,this._$Ev()}_$Ev(){this._$ES=new Promise((t=>this.enableUpdating=t)),this._$AL=new Map,this._$E_(),this.requestUpdate(),this.constructor.l?.forEach((t=>t(this)))}addController(t){(this._$EO??=new Set).add(t),void 0!==this.renderRoot&&this.isConnected&&t.hostConnected?.()}removeController(t){this._$EO?.delete(t)}_$E_(){const t=new Map,e=this.constructor.elementProperties;for(const i of e.keys())this.hasOwnProperty(i)&&(t.set(i,this[i]),delete this[i]);t.size>0&&(this._$Ep=t)}createRenderRoot(){const t=this.shadowRoot??this.attachShadow(this.constructor.shadowRootOptions);return((t,e)=>{if(s)t.adoptedStyleSheets=e.map((t=>t instanceof CSSStyleSheet?t:t.styleSheet));else for(const s of e){const e=document.createElement("style"),o=i.litNonce;void 0!==o&&e.setAttribute("nonce",o),e.textContent=s.cssText,t.appendChild(e)}})(t,this.constructor.elementStyles),t}connectedCallback(){this.renderRoot??=this.createRenderRoot(),this.enableUpdating(!0),this._$EO?.forEach((t=>t.hostConnected?.()))}enableUpdating(t){}disconnectedCallback(){this._$EO?.forEach((t=>t.hostDisconnected?.()))}attributeChangedCallback(t,e,i){this._$AK(t,i)}_$EC(t,e){const i=this.constructor.elementProperties.get(t),s=this.constructor._$Eu(t,i);if(void 0!==s&&!0===i.reflect){const o=(void 0!==i.converter?.toAttribute?i.converter:v).toAttribute(e,i.type);this._$Em=t,null==o?this.removeAttribute(s):this.setAttribute(s,o),this._$Em=null}}_$AK(t,e){const i=this.constructor,s=i._$Eh.get(t);if(void 0!==s&&this._$Em!==s){const t=i.getPropertyOptions(s),o="function"==typeof t.converter?{fromAttribute:t.converter}:void 0!==t.converter?.fromAttribute?t.converter:v;this._$Em=s,this[s]=o.fromAttribute(e,t.type),this._$Em=null}}requestUpdate(t,e,i){if(void 0!==t){if(i??=this.constructor.getPropertyOptions(t),!(i.hasChanged??_)(this[t],e))return;this.P(t,e,i)}!1===this.isUpdatePending&&(this._$ES=this._$ET())}P(t,e,i){this._$AL.has(t)||this._$AL.set(t,e),!0===i.reflect&&this._$Em!==t&&(this._$Ej??=new Set).add(t)}async _$ET(){this.isUpdatePending=!0;try{await this._$ES}catch(t){Promise.reject(t)}const t=this.scheduleUpdate();return null!=t&&await t,!this.isUpdatePending}scheduleUpdate(){return this.performUpdate()}performUpdate(){if(!this.isUpdatePending)return;if(!this.hasUpdated){if(this.renderRoot??=this.createRenderRoot(),this._$Ep){for(const[t,e]of this._$Ep)this[t]=e;this._$Ep=void 0}const t=this.constructor.elementProperties;if(t.size>0)for(const[e,i]of t)!0!==i.wrapped||this._$AL.has(e)||void 0===this[e]||this.P(e,this[e],i)}let t=!1;const e=this._$AL;try{t=this.shouldUpdate(e),t?(this.willUpdate(e),this._$EO?.forEach((t=>t.hostUpdate?.())),this.update(e)):this._$EU()}catch(e){throw t=!1,this._$EU(),e}t&&this._$AE(e)}willUpdate(t){}_$AE(t){this._$EO?.forEach((t=>t.hostUpdated?.())),this.hasUpdated||(this.hasUpdated=!0,this.firstUpdated(t)),this.updated(t)}_$EU(){this._$AL=new Map,this.isUpdatePending=!1}get updateComplete(){return this.getUpdateComplete()}getUpdateComplete(){return this._$ES}shouldUpdate(t){return!0}update(t){this._$Ej&&=this._$Ej.forEach((t=>this._$EC(t,this[t]))),this._$EU()}updated(t){}firstUpdated(t){}}A.elementStyles=[],A.shadowRootOptions={mode:"open"},A[$("elementProperties")]=new Map,A[$("finalized")]=new Map,y?.({ReactiveElement:A}),(f.reactiveElementVersions??=[]).push("2.0.4");const E=globalThis,S=E.trustedTypes,k=S?S.createPolicy("lit-html",{createHTML:t=>t}):void 0,C="$lit$",P=`lit$${Math.random().toFixed(9).slice(2)}$`,M="?"+P,U=`<${M}>`,z=document,O=()=>z.createComment(""),T=t=>null===t||"object"!=typeof t&&"function"!=typeof t,N=Array.isArray,R="[ \t\n\f\r]",H=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,L=/-->/g,j=/>/g,D=RegExp(`>|${R}(?:([^\\s"'>=/]+)(${R}*=${R}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`,"g"),I=/'/g,B=/"/g,W=/^(?:script|style|textarea|title)$/i,V=(t=>(e,...i)=>({_$litType$:t,strings:e,values:i}))(1),q=Symbol.for("lit-noChange"),F=Symbol.for("lit-nothing"),Y=new WeakMap,J=z.createTreeWalker(z,129);function K(t,e){if(!N(t)||!t.hasOwnProperty("raw"))throw Error("invalid template strings array");return void 0!==k?k.createHTML(e):e}const X=(t,e)=>{const i=t.length-1,s=[];let o,n=2===e?"<svg>":3===e?"<math>":"",r=H;for(let e=0;e<i;e++){const i=t[e];let a,l,h=-1,c=0;for(;c<i.length&&(r.lastIndex=c,l=r.exec(i),null!==l);)c=r.lastIndex,r===H?"!--"===l[1]?r=L:void 0!==l[1]?r=j:void 0!==l[2]?(W.test(l[2])&&(o=RegExp("</"+l[2],"g")),r=D):void 0!==l[3]&&(r=D):r===D?">"===l[0]?(r=o??H,h=-1):void 0===l[1]?h=-2:(h=r.lastIndex-l[2].length,a=l[1],r=void 0===l[3]?D:'"'===l[3]?B:I):r===B||r===I?r=D:r===L||r===j?r=H:(r=D,o=void 0);const d=r===D&&t[e+1].startsWith("/>")?" ":"";n+=r===H?i+U:h>=0?(s.push(a),i.slice(0,h)+C+i.slice(h)+P+d):i+P+(-2===h?e:d)}return[K(t,n+(t[i]||"<?>")+(2===e?"</svg>":3===e?"</math>":"")),s]};class Z{constructor({strings:t,_$litType$:e},i){let s;this.parts=[];let o=0,n=0;const r=t.length-1,a=this.parts,[l,h]=X(t,e);if(this.el=Z.createElement(l,i),J.currentNode=this.el.content,2===e||3===e){const t=this.el.content.firstChild;t.replaceWith(...t.childNodes)}for(;null!==(s=J.nextNode())&&a.length<r;){if(1===s.nodeType){if(s.hasAttributes())for(const t of s.getAttributeNames())if(t.endsWith(C)){const e=h[n++],i=s.getAttribute(t).split(P),r=/([.?@])?(.*)/.exec(e);a.push({type:1,index:o,name:r[2],strings:i,ctor:"."===r[1]?it:"?"===r[1]?st:"@"===r[1]?ot:et}),s.removeAttribute(t)}else t.startsWith(P)&&(a.push({type:6,index:o}),s.removeAttribute(t));if(W.test(s.tagName)){const t=s.textContent.split(P),e=t.length-1;if(e>0){s.textContent=S?S.emptyScript:"";for(let i=0;i<e;i++)s.append(t[i],O()),J.nextNode(),a.push({type:2,index:++o});s.append(t[e],O())}}}else if(8===s.nodeType)if(s.data===M)a.push({type:2,index:o});else{let t=-1;for(;-1!==(t=s.data.indexOf(P,t+1));)a.push({type:7,index:o}),t+=P.length-1}o++}}static createElement(t,e){const i=z.createElement("template");return i.innerHTML=t,i}}function G(t,e,i=t,s){if(e===q)return e;let o=void 0!==s?i._$Co?.[s]:i._$Cl;const n=T(e)?void 0:e._$litDirective$;return o?.constructor!==n&&(o?._$AO?.(!1),void 0===n?o=void 0:(o=new n(t),o._$AT(t,i,s)),void 0!==s?(i._$Co??=[])[s]=o:i._$Cl=o),void 0!==o&&(e=G(t,o._$AS(t,e.values),o,s)),e}class Q{constructor(t,e){this._$AV=[],this._$AN=void 0,this._$AD=t,this._$AM=e}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}u(t){const{el:{content:e},parts:i}=this._$AD,s=(t?.creationScope??z).importNode(e,!0);J.currentNode=s;let o=J.nextNode(),n=0,r=0,a=i[0];for(;void 0!==a;){if(n===a.index){let e;2===a.type?e=new tt(o,o.nextSibling,this,t):1===a.type?e=new a.ctor(o,a.name,a.strings,this,t):6===a.type&&(e=new nt(o,this,t)),this._$AV.push(e),a=i[++r]}n!==a?.index&&(o=J.nextNode(),n++)}return J.currentNode=z,s}p(t){let e=0;for(const i of this._$AV)void 0!==i&&(void 0!==i.strings?(i._$AI(t,i,e),e+=i.strings.length-2):i._$AI(t[e])),e++}}class tt{get _$AU(){return this._$AM?._$AU??this._$Cv}constructor(t,e,i,s){this.type=2,this._$AH=F,this._$AN=void 0,this._$AA=t,this._$AB=e,this._$AM=i,this.options=s,this._$Cv=s?.isConnected??!0}get parentNode(){let t=this._$AA.parentNode;const e=this._$AM;return void 0!==e&&11===t?.nodeType&&(t=e.parentNode),t}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(t,e=this){t=G(this,t,e),T(t)?t===F||null==t||""===t?(this._$AH!==F&&this._$AR(),this._$AH=F):t!==this._$AH&&t!==q&&this._(t):void 0!==t._$litType$?this.$(t):void 0!==t.nodeType?this.T(t):(t=>N(t)||"function"==typeof t?.[Symbol.iterator])(t)?this.k(t):this._(t)}O(t){return this._$AA.parentNode.insertBefore(t,this._$AB)}T(t){this._$AH!==t&&(this._$AR(),this._$AH=this.O(t))}_(t){this._$AH!==F&&T(this._$AH)?this._$AA.nextSibling.data=t:this.T(z.createTextNode(t)),this._$AH=t}$(t){const{values:e,_$litType$:i}=t,s="number"==typeof i?this._$AC(t):(void 0===i.el&&(i.el=Z.createElement(K(i.h,i.h[0]),this.options)),i);if(this._$AH?._$AD===s)this._$AH.p(e);else{const t=new Q(s,this),i=t.u(this.options);t.p(e),this.T(i),this._$AH=t}}_$AC(t){let e=Y.get(t.strings);return void 0===e&&Y.set(t.strings,e=new Z(t)),e}k(t){N(this._$AH)||(this._$AH=[],this._$AR());const e=this._$AH;let i,s=0;for(const o of t)s===e.length?e.push(i=new tt(this.O(O()),this.O(O()),this,this.options)):i=e[s],i._$AI(o),s++;s<e.length&&(this._$AR(i&&i._$AB.nextSibling,s),e.length=s)}_$AR(t=this._$AA.nextSibling,e){for(this._$AP?.(!1,!0,e);t&&t!==this._$AB;){const e=t.nextSibling;t.remove(),t=e}}setConnected(t){void 0===this._$AM&&(this._$Cv=t,this._$AP?.(t))}}class et{get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}constructor(t,e,i,s,o){this.type=1,this._$AH=F,this._$AN=void 0,this.element=t,this.name=e,this._$AM=s,this.options=o,i.length>2||""!==i[0]||""!==i[1]?(this._$AH=Array(i.length-1).fill(new String),this.strings=i):this._$AH=F}_$AI(t,e=this,i,s){const o=this.strings;let n=!1;if(void 0===o)t=G(this,t,e,0),n=!T(t)||t!==this._$AH&&t!==q,n&&(this._$AH=t);else{const s=t;let r,a;for(t=o[0],r=0;r<o.length-1;r++)a=G(this,s[i+r],e,r),a===q&&(a=this._$AH[r]),n||=!T(a)||a!==this._$AH[r],a===F?t=F:t!==F&&(t+=(a??"")+o[r+1]),this._$AH[r]=a}n&&!s&&this.j(t)}j(t){t===F?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,t??"")}}class it extends et{constructor(){super(...arguments),this.type=3}j(t){this.element[this.name]=t===F?void 0:t}}class st extends et{constructor(){super(...arguments),this.type=4}j(t){this.element.toggleAttribute(this.name,!!t&&t!==F)}}class ot extends et{constructor(t,e,i,s,o){super(t,e,i,s,o),this.type=5}_$AI(t,e=this){if((t=G(this,t,e,0)??F)===q)return;const i=this._$AH,s=t===F&&i!==F||t.capture!==i.capture||t.once!==i.once||t.passive!==i.passive,o=t!==F&&(i===F||s);s&&this.element.removeEventListener(this.name,this,i),o&&this.element.addEventListener(this.name,this,t),this._$AH=t}handleEvent(t){"function"==typeof this._$AH?this._$AH.call(this.options?.host??this.element,t):this._$AH.handleEvent(t)}}class nt{constructor(t,e,i){this.element=t,this.type=6,this._$AN=void 0,this._$AM=e,this.options=i}get _$AU(){return this._$AM._$AU}_$AI(t){G(this,t)}}const rt=E.litHtmlPolyfillSupport;rt?.(Z,tt),(E.litHtmlVersions??=[]).push("3.2.1");let at=class extends A{constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0}createRenderRoot(){const t=super.createRenderRoot();return this.renderOptions.renderBefore??=t.firstChild,t}update(t){const e=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(t),this._$Do=((t,e,i)=>{const s=i?.renderBefore??e;let o=s._$litPart$;if(void 0===o){const t=i?.renderBefore??null;s._$litPart$=o=new tt(e.insertBefore(O(),t),t,void 0,i??{})}return o._$AI(t),o})(e,this.renderRoot,this.renderOptions)}connectedCallback(){super.connectedCallback(),this._$Do?.setConnected(!0)}disconnectedCallback(){super.disconnectedCallback(),this._$Do?.setConnected(!1)}render(){return q}};at._$litElement$=!0,at.finalized=!0,globalThis.litElementHydrateSupport?.({LitElement:at});const lt=globalThis.litElementPolyfillSupport;lt?.({LitElement:at}),(globalThis.litElementVersions??=[]).push("4.1.1");const ht=t=>(e,i)=>{void 0!==i?i.addInitializer((()=>{customElements.define(t,e)})):customElements.define(t,e)},ct={attribute:!0,type:String,converter:v,reflect:!1,hasChanged:_},dt=(t=ct,e,i)=>{const{kind:s,metadata:o}=i;let n=globalThis.litPropertyMetadata.get(o);if(void 0===n&&globalThis.litPropertyMetadata.set(o,n=new Map),n.set(i.name,t),"accessor"===s){const{name:s}=i;return{set(i){const o=e.get.call(this);e.set.call(this,i),this.requestUpdate(s,o,t)},init(e){return void 0!==e&&this.P(s,void 0,t),e}}}if("setter"===s){const{name:s}=i;return function(i){const o=this[s];e.call(this,i),this.requestUpdate(s,o,t)}}throw Error("Unsupported decorator location: "+s)};function pt(t){return function(t){return(e,i)=>"object"==typeof i?dt(t,e,i):((t,e,i)=>{const s=e.hasOwnProperty(i);return e.constructor.createProperty(i,s?{...t,wrapped:!0}:t),s?Object.getOwnPropertyDescriptor(e,i):void 0})(t,e,i)}({...t,state:!0,attribute:!1})}var ut='*,:after,:before{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgba(59,130,246,.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgba(59,130,246,.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/*! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com*/*,:after,:before{border:0 solid #e5e7eb;box-sizing:border-box}:after,:before{--tw-content:""}:host,html{-webkit-text-size-adjust:100%;font-feature-settings:normal;-webkit-tap-highlight-color:transparent;font-family:ui-sans-serif,system-ui,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji;font-variation-settings:normal;line-height:1.5;-moz-tab-size:4;-o-tab-size:4;tab-size:4}body{line-height:inherit;margin:0}hr{border-top-width:1px;color:inherit;height:0}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-feature-settings:normal;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace;font-size:1em;font-variation-settings:normal}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{border-collapse:collapse;border-color:inherit;text-indent:0}button,input,optgroup,select,textarea{font-feature-settings:inherit;color:inherit;font-family:inherit;font-size:100%;font-variation-settings:inherit;font-weight:inherit;letter-spacing:inherit;line-height:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0}fieldset,legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::-moz-placeholder,textarea::-moz-placeholder{color:#9ca3af;opacity:1}input::placeholder,textarea::placeholder{color:#9ca3af;opacity:1}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{height:auto;max-width:100%}[hidden]:where(:not([hidden=until-found])){display:none}.static{position:static}.fixed{position:fixed}.mb-2{margin-bottom:.5rem}.mb-4{margin-bottom:1rem}.mb-6{margin-bottom:1.5rem}.flex{display:flex}.w-\\[400px\\]{width:400px}.w-full{width:100%}.select-none{-webkit-user-select:none;-moz-user-select:none;user-select:none}.resize{resize:both}.flex-col{flex-direction:column}.items-center{align-items:center}.justify-between{justify-content:space-between}.rounded-lg{border-radius:.5rem}.rounded-md{border-radius:.375rem}.rounded-xl{border-radius:.75rem}.bg-blue-600{--tw-bg-opacity:1;background-color:rgb(37 99 235/var(--tw-bg-opacity,1))}.bg-gray-800{--tw-bg-opacity:1;background-color:rgb(31 41 55/var(--tw-bg-opacity,1))}.bg-gray-900{--tw-bg-opacity:1;background-color:rgb(17 24 39/var(--tw-bg-opacity,1))}.p-6{padding:1.5rem}.p-8{padding:2rem}.px-4{padding-left:1rem;padding-right:1rem}.py-2{padding-bottom:.5rem;padding-top:.5rem}.text-2xl{font-size:1.5rem;line-height:2rem}.text-sm{font-size:.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.font-bold{font-weight:700}.text-gray-300{--tw-text-opacity:1;color:rgb(209 213 219/var(--tw-text-opacity,1))}.text-gray-400{--tw-text-opacity:1;color:rgb(156 163 175/var(--tw-text-opacity,1))}.text-gray-500{--tw-text-opacity:1;color:rgb(107 114 128/var(--tw-text-opacity,1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255/var(--tw-text-opacity,1))}.shadow-2xl{--tw-shadow:0 25px 50px -12px rgba(0,0,0,.25);--tw-shadow-colored:0 25px 50px -12px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}.transition-colors{transition-duration:.15s;transition-property:color,background-color,border-color,text-decoration-color,fill,stroke;transition-timing-function:cubic-bezier(.4,0,.2,1)}.hover\\:bg-blue-700:hover{--tw-bg-opacity:1;background-color:rgb(29 78 216/var(--tw-bg-opacity,1))}.hover\\:text-white:hover{--tw-text-opacity:1;color:rgb(255 255 255/var(--tw-text-opacity,1))}';let gt=class extends at{constructor(){super(...arguments),this.isDragging=!1,this.position={x:window.innerWidth-420,y:20},this.dragOffset={x:0,y:0},this.handleMouseMove=t=>{this.isDragging&&(this.position={x:t.clientX-this.dragOffset.x,y:t.clientY-this.dragOffset.y},this.style.left=`${this.position.x}px`,this.style.top=`${this.position.y}px`)},this.handleMouseUp=()=>{this.isDragging=!1,window.removeEventListener("mousemove",this.handleMouseMove),window.removeEventListener("mouseup",this.handleMouseUp)},this.handleResize=()=>{if(!this.isDragging){const t=this.getBoundingClientRect(),e=window.innerWidth-t.width;this.position.x=Math.min(this.position.x,e-20),this.style.left=`${this.position.x}px`}}}connectedCallback(){super.connectedCallback(),this.style.left=`${this.position.x}px`,this.style.top=`${this.position.y}px`,window.addEventListener("resize",this.handleResize)}disconnectedCallback(){super.disconnectedCallback(),window.removeEventListener("resize",this.handleResize)}handleMouseDown(t){if(0!==t.button)return;const e=t.target;if("INPUT"===e.tagName||"BUTTON"===e.tagName||"A"===e.tagName||"LABEL"===e.tagName)return;this.isDragging=!0;const i=this.getBoundingClientRect();this.dragOffset={x:t.clientX-i.left,y:t.clientY-i.top},window.addEventListener("mousemove",this.handleMouseMove),window.addEventListener("mouseup",this.handleMouseUp)}render(){return V`
+      <div 
+        @mousedown=${this.handleMouseDown}
+        class="w-[400px] bg-gray-900 rounded-xl shadow-2xl p-8 flex flex-col select-none"
+        style="touch-action: none;"
+      >
+        <slot></slot>
+      </div>
+    `}};return gt.styles=l`
+    ${a(ut)}
+    :host {
+      position: fixed;
+      cursor: move;
+      user-select: none;
+      -webkit-user-select: none;
+      z-index: 1000;
+    }
+  `,e([pt()],gt.prototype,"isDragging",void 0),e([pt()],gt.prototype,"position",void 0),e([pt()],gt.prototype,"dragOffset",void 0),gt=e([ht("draggable-container")],gt),t.MyExtensionComponent=class extends at{constructor(){super(...arguments),this.count=0}increment(){this.count++}close(){try{window.parent.postMessage({type:"component-close"},"*")}catch(t){console.error("Failed to dispatch close event:",t);const e=this.closest("my-extension-component");e&&e.remove()}}render(){return V`
+      <draggable-container>
+        <div class="flex flex-col items-center">
+          <!-- Header with close button -->
+          <div class="w-full flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold text-white">Web Component Extension</h2>
+            <button 
+              @click=${this.close}
+              class="text-gray-400 hover:text-white"
+              aria-label="Close"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 6L6 18M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+          
+          <!-- Content -->
+          <div class="bg-gray-800 rounded-lg p-6 w-full mb-6">
+            <p class="text-gray-300 mb-4">
+              This is a basic example of a web component extension. You can customize it to fit your needs.
+            </p>
+            
+            <div class="flex flex-col items-center">
+              <p class="text-2xl font-bold text-white mb-2">${this.count}</p>
+              <button
+                @click=${this.increment}
+                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
+              >
+                Increment
+              </button>
+            </div>
+          </div>
+          
+          <!-- Footer -->
+          <p class="text-sm text-gray-500">
+            v1.0.0 | Click and drag to move
+          </p>
+        </div>
+      </draggable-container>
+    `}},t.MyExtensionComponent.styles=l`
+    ${a(ut)}
+  `,e([pt()],t.MyExtensionComponent.prototype,"count",void 0),t.MyExtensionComponent=e([ht("my-extension-component")],t.MyExtensionComponent),t}({});
+
+================
+File: chrome-extension/content.js
+================
+console.log('Content Script: Initialized');
+
+// Listen for messages from the web component
+window.addEventListener('message', function (event) {
+    // Verify the message is from our web component
+    if (event.data && event.data.type === 'component-close') {
+        try {
+            // Relay the message to the background script
+            chrome.runtime.sendMessage({ type: 'component-close' })
+                .catch(error => {
+                    console.log('Failed to send message to background script:', error);
+                    // If extension context is invalid, just remove the component directly
+                    const component = document.querySelector('my-extension-component');
+                    if (component) {
+                        component.remove();
+                    }
+                });
+        } catch (error) {
+            console.log('Extension context invalid, removing component directly');
+            // If chrome.runtime is not available, remove the component directly
+            const component = document.querySelector('my-extension-component');
+            if (component) {
+                component.remove();
+            }
+        }
+    }
+});
+
+// Listen for messages from the background script
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.type === 'remove-component') {
+        const component = document.querySelector('my-extension-component');
+        if (component) {
+            component.remove();
+            try {
+                // Update the background script's state
+                chrome.runtime.sendMessage({ type: 'component-removed' })
+                    .catch(error => console.log('Failed to send component-removed message:', error));
+            } catch (error) {
+                console.log('Failed to send component-removed message:', error);
+            }
+        }
+    }
+    // Always send a response
+    sendResponse({ received: true });
+});
+
+================
+File: chrome-extension/inject-component.js
+================
+// Check if script already exists
+if (!document.querySelector('script[src*="bundle.js"]')) {
+    // Create a script element to load the module
+    const script = document.createElement('script');
+    script.type = 'module';
+    script.src = chrome.runtime.getURL('bundle.js');
+    document.head.appendChild(script);
+}
+
+================
+File: chrome-extension/manifest.json
+================
+{
+    "manifest_version": 3,
+    "name": "Web Component Extension",
+    "version": "1.0.0",
+    "description": "A Chrome extension that injects a web component into the page",
+    "permissions": [
+        "activeTab",
+        "scripting"
+    ],
+    "action": {
+        "default_icon": {
+            "16": "icons/16.png",
+            "48": "icons/48.png",
+            "128": "icons/128.png"
+        }
+    },
+    "background": {
+        "service_worker": "background.js"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "<all_urls>"
+            ],
+            "js": [
+                "content.js"
+            ]
+        }
+    ],
+    "web_accessible_resources": [
+        {
+            "resources": [
+                "bundle.js"
+            ],
+            "matches": [
+                "<all_urls>"
+            ]
+        }
+    ]
+}
+
+================
+File: web-component/src/components/draggable-container.ts
+================
+import { LitElement, html, css, unsafeCSS } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import styles from '../styles.css';
+
+@customElement('draggable-container')
+export class DraggableContainer extends LitElement {
+    static styles = css`
+    ${unsafeCSS(styles)}
+    :host {
+      position: fixed;
+      cursor: move;
+      user-select: none;
+      -webkit-user-select: none;
+      z-index: 1000;
+    }
+  `;
+
+    @state()
+    private isDragging = false;
+
+    @state()
+    private position = { x: window.innerWidth - 420, y: 20 };
+
+    @state()
+    private dragOffset = { x: 0, y: 0 };
+
+    connectedCallback() {
+        super.connectedCallback();
+        // Set initial position
+        this.style.left = `${this.position.x}px`;
+        this.style.top = `${this.position.y}px`;
+
+        // Handle window resize
+        window.addEventListener('resize', this.handleResize);
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback();
+        window.removeEventListener('resize', this.handleResize);
+    }
+
+    private handleMouseDown(e: MouseEvent) {
+        // Only handle left mouse button
+        if (e.button !== 0) return;
+
+        const target = e.target as HTMLElement;
+        // Don't initiate drag on interactive elements
+        if (target.tagName === 'INPUT' ||
+            target.tagName === 'BUTTON' ||
+            target.tagName === 'A' ||
+            target.tagName === 'LABEL') {
+            return;
+        }
+
+        this.isDragging = true;
+        const rect = this.getBoundingClientRect();
+        this.dragOffset = {
+            x: e.clientX - rect.left,
+            y: e.clientY - rect.top
+        };
+
+        // Add temporary event listeners
+        window.addEventListener('mousemove', this.handleMouseMove);
+        window.addEventListener('mouseup', this.handleMouseUp);
+    }
+
+    private handleMouseMove = (e: MouseEvent) => {
+        if (!this.isDragging) return;
+
+        this.position = {
+            x: e.clientX - this.dragOffset.x,
+            y: e.clientY - this.dragOffset.y
+        };
+
+        this.style.left = `${this.position.x}px`;
+        this.style.top = `${this.position.y}px`;
+    };
+
+    private handleMouseUp = () => {
+        this.isDragging = false;
+        window.removeEventListener('mousemove', this.handleMouseMove);
+        window.removeEventListener('mouseup', this.handleMouseUp);
+    };
+
+    private handleResize = () => {
+        if (!this.isDragging) {
+            // Keep the component in view when window is resized
+            const rect = this.getBoundingClientRect();
+            const maxX = window.innerWidth - rect.width;
+            this.position.x = Math.min(this.position.x, maxX - 20);
+            this.style.left = `${this.position.x}px`;
+        }
+    };
+
+    render() {
+        return html`
+      <div 
+        @mousedown=${this.handleMouseDown}
+        class="w-[400px] bg-gray-900 rounded-xl shadow-2xl p-8 flex flex-col select-none"
+        style="touch-action: none;"
+      >
+        <slot></slot>
+      </div>
+    `;
+    }
+}
+
+================
+File: web-component/src/types/chrome.d.ts
+================
+declare namespace chrome {
+    namespace runtime {
+        function sendMessage(message: any): void;
+    }
+}
+
+================
+File: web-component/src/index.ts
+================
+import { LitElement, html, css, unsafeCSS } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import './components/draggable-container';
+import styles from './styles.css';
+
+@customElement('my-extension-component')
+export class MyExtensionComponent extends LitElement {
+    static styles = css`
+    ${unsafeCSS(styles)}
+  `;
+
+    @state()
+    private count = 0;
+
+    private increment() {
+        this.count++;
+    }
+
+    private close() {
+        try {
+            // Send message to parent window which will be caught by content script
+            window.parent.postMessage({ type: 'component-close' }, '*');
+        } catch (error) {
+            console.error('Failed to dispatch close event:', error);
+            // If we can't communicate with the parent, try to remove ourselves directly
+            const component = this.closest('my-extension-component');
+            if (component) {
+                component.remove();
+            }
+        }
+    }
+
+    render() {
+        return html`
+      <draggable-container>
+        <div class="flex flex-col items-center">
+          <!-- Header with close button -->
+          <div class="w-full flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold text-white">Web Component Extension</h2>
+            <button 
+              @click=${this.close}
+              class="text-gray-400 hover:text-white"
+              aria-label="Close"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 6L6 18M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+          
+          <!-- Content -->
+          <div class="bg-gray-800 rounded-lg p-6 w-full mb-6">
+            <p class="text-gray-300 mb-4">
+              This is a basic example of a web component extension. You can customize it to fit your needs.
+            </p>
+            
+            <div class="flex flex-col items-center">
+              <p class="text-2xl font-bold text-white mb-2">${this.count}</p>
+              <button
+                @click=${this.increment}
+                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
+              >
+                Increment
+              </button>
+            </div>
+          </div>
+          
+          <!-- Footer -->
+          <p class="text-sm text-gray-500">
+            v1.0.0 | Click and drag to move
+          </p>
+        </div>
+      </draggable-container>
+    `;
+    }
+}
+
+declare global {
+    interface HTMLElementTagNameMap {
+        'my-extension-component': MyExtensionComponent;
+    }
+}
+
+================
+File: web-component/src/styles.css
+================
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+================
+File: web-component/src/types.d.ts
+================
+declare module '*.css' {
+    const content: string;
+    export default content;
+}
+
+================
+File: web-component/package.json
+================
+{
+  "name": "web-component-extension",
+  "version": "1.0.0",
+  "description": "Web component for Chrome extension",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "rollup -c",
+    "watch": "rollup -c -w",
+    "dev": "npm run watch"
+  },
+  "dependencies": {
+    "lit": "^3.1.0"
+  },
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^11.1.5",
+    "@rollup/plugin-url": "^8.0.2",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.31",
+    "rollup": "^4.9.0",
+    "rollup-plugin-copy": "^3.5.0",
+    "rollup-plugin-postcss": "^4.0.2",
+    "tailwindcss": "^3.4.17",
+    "tslib": "^2.6.2",
+    "typescript": "^5.2.2"
+  }
+}
+
+================
+File: web-component/postcss.config.cjs
+================
+module.exports = {
+    plugins: {
+        tailwindcss: {},
+        autoprefixer: {}
+    }
+}
+
+================
+File: web-component/rollup.config.js
+================
+import typescript from '@rollup/plugin-typescript';
+import resolve from '@rollup/plugin-node-resolve';
+import postcss from 'rollup-plugin-postcss';
+import terser from '@rollup/plugin-terser';
+import tailwindcss from 'tailwindcss';
+import autoprefixer from 'autoprefixer';
+
+export default {
+    input: 'src/index.ts',
+    output: {
+        file: '../chrome-extension/bundle.js',
+        format: 'iife',
+        name: 'MyExtensionComponent',
+        sourcemap: false
+    },
+    plugins: [
+        typescript({
+            compilerOptions: {
+                declaration: false,
+                declarationDir: null,
+                sourceMap: false
+            },
+            outputToFilesystem: false
+        }),
+        resolve(),
+        postcss({
+            config: {
+                path: './postcss.config.cjs'
+            },
+            extensions: ['.css'],
+            minimize: true,
+            inject: false,
+            extract: false,
+            modules: false,
+            plugins: [
+                tailwindcss(),
+                autoprefixer()
+            ]
+        }),
+        terser({
+            format: {
+                comments: false
+            }
+        })
+    ]
+};
+
+================
+File: web-component/tailwind.config.cjs
+================
+module.exports = {
+    content: ['./src/**/*.{ts,html}'],
+    theme: {
+        extend: {},
+    },
+    plugins: [],
+}
+
+================
+File: web-component/tsconfig.json
+================
+{
+    "compilerOptions": {
+        "target": "es2019",
+        "module": "esnext",
+        "moduleResolution": "node",
+        "lib": [
+            "es2019",
+            "dom"
+        ],
+        "declaration": true,
+        "outDir": "dist",
+        "strict": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noImplicitReturns": true,
+        "noFallthroughCasesInSwitch": true,
+        "experimentalDecorators": true
+    },
+    "include": [
+        "src/**/*.ts",
+        "src/**/*.d.ts"
+    ],
+    "exclude": [
+        "node_modules"
+    ]
+}
+
+================
+File: .gitignore
+================
+*/node_modules
+*/dist
+*.zip
+.DS_Store
+
+================
+File: deploy.sh
+================
+#!/bin/bash
+# deploy.sh - Build web component and package Chrome extension for deployment with detailed logging
+
+# ----- Configuration -----
+WEB_COMPONENT_DIR="./web-component"                 # Directory for your web component (contains package.json with a build script)
+EXTENSION_DIR="./chrome-extension"                  # Directory containing your Chrome extension source files (including manifest.json)
+PACKAGE_JSON="$WEB_COMPONENT_DIR/package.json"      # Path to web component's package.json
+MANIFEST="$EXTENSION_DIR/manifest.json"             # Path to extension's manifest.json
+MAIN_COMPONENT="$WEB_COMPONENT_DIR/src/index.ts"    # Path to main component
+
+# ----- Logging Functions -----
+# Log info messages with a timestamp
+log_info() {
+    echo "[INFO] $(date '+%Y-%m-%d %H:%M:%S') - $1"
+}
+
+# Log error messages with a timestamp and exit
+log_error() {
+    echo "[ERROR] $(date '+%Y-%m-%d %H:%M:%S') - $1" >&2
+    exit 1
+}
+
+# ----- Step 1: Get Version from package.json -----
+log_info "Getting version from package.json"
+
+if [ ! -f "$PACKAGE_JSON" ]; then
+    log_error "package.json not found at '$PACKAGE_JSON'"
+fi
+
+# Extract version from package.json using grep and sed
+VERSION=$(grep -m1 '"version":' "$PACKAGE_JSON" | sed -E 's/.*"version": "([^"]+)".*/\1/')
+
+if [ -z "$VERSION" ]; then
+    log_error "Failed to extract version from package.json"
+fi
+
+log_info "Found version: $VERSION"
+
+# Set the output zip filename with version
+OUTPUT_ZIP="chrome-extension-v$VERSION.zip"
+
+# ----- Step 2: Update manifest.json version -----
+log_info "Updating manifest.json version to $VERSION"
+
+if [ ! -f "$MANIFEST" ]; then
+    log_error "manifest.json not found at '$MANIFEST'"
+fi
+
+# Create a temporary file
+TMP_MANIFEST=$(mktemp)
+
+# Update version in manifest.json
+jq ".version = \"$VERSION\"" "$MANIFEST" > "$TMP_MANIFEST"
+
+if [ $? -ne 0 ]; then
+    rm "$TMP_MANIFEST"
+    log_error "Failed to update version in manifest.json"
+fi
+
+# Move the temporary file back to the original
+mv "$TMP_MANIFEST" "$MANIFEST"
+
+log_info "Successfully updated manifest.json version"
+
+# ----- Step 3: Build the Web Component -----
+log_info "Building the web component."
+
+if [ ! -d "$WEB_COMPONENT_DIR" ]; then
+    log_error "Web component directory '$WEB_COMPONENT_DIR' does not exist."
+fi
+
+log_info "Changing directory to '$WEB_COMPONENT_DIR'."
+cd "$WEB_COMPONENT_DIR" || log_error "Failed to change directory to '$WEB_COMPONENT_DIR'."
+
+log_info "Running 'npm run build' in '$WEB_COMPONENT_DIR'."
+npm run build || log_error "npm run build failed in '$WEB_COMPONENT_DIR'."
+
+log_info "Web component built successfully."
+
+# Return to the project root.
+cd - >/dev/null || log_error "Failed to return to the project root."
+
+# ----- Step 4: Package the Chrome Extension -----
+log_info "Packaging the Chrome extension."
+
+if [ ! -d "$EXTENSION_DIR" ]; then
+    log_error "Extension directory '$EXTENSION_DIR' does not exist."
+fi
+
+log_info "Creating ZIP file '$OUTPUT_ZIP'."
+cd "$EXTENSION_DIR" || log_error "Failed to change directory to '$EXTENSION_DIR'."
+
+# Create the ZIP file, excluding hidden files and directories
+zip -r "../$OUTPUT_ZIP" . -x ".*" "*/.*" || log_error "Failed to create ZIP file."
+
+cd - >/dev/null || log_error "Failed to return to the project root."
+
+log_info "Successfully created '$OUTPUT_ZIP'."
+log_info "Deployment process completed successfully."
+
+
+
+================================================================
+End of Codebase
+================================================================
