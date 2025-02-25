@@ -208,7 +208,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ---
 
-Rey<div align="center">
+<div align="center">
 
 <p>Made with ❤️ by Reyco1</p>
   <p>
