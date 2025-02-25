@@ -33,7 +33,7 @@ A modern Chrome extension that injects a draggable web component into any webpag
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) (v14 or higher)
+- [Node.js](https://nodejs.org/) (v18 or higher)
 - [npm](https://www.npmjs.com/) (usually comes with Node.js)
 - [jq](https://stedolan.github.io/jq/download/) (optional, for deployment)
 
@@ -54,17 +54,18 @@ chmod +x install.sh
 If you prefer to install manually:
 
 1. Install web component dependencies:
+
    ```bash
    cd web-component
    npm install
    ```
-
 2. Build the web component:
+
    ```bash
    npm run build
    ```
-
 3. Ensure the icons directory exists:
+
    ```bash
    mkdir -p chrome-extension/icons
    ```
@@ -133,6 +134,7 @@ chmod +x deploy.sh
 ```
 
 This will:
+
 1. Update the version in `manifest.json`
 2. Build the web component
 3. Package the extension into a ZIP file ready for distribution
@@ -206,8 +208,9 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ---
 
-<div align="center">
-  <p>Made with ❤️ by your team name</p>
+Rey<div align="center">
+
+<p>Made with ❤️ by Reyco1</p>
   <p>
     <a href="https://github.com/yourusername/web-component-extension">GitHub</a> •
     <a href="https://github.com/yourusername/web-component-extension/issues">Report Bug</a> •
